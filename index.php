@@ -78,6 +78,7 @@
     </div>
 
     <div class="sample_json"></div>
+    <input type = "hidden" id = "firebase_uid"/>
     
 
     <!-- Firebase Auth and Realtime Database Javascript Config [START] -->
@@ -183,6 +184,8 @@
 
             createUserWithEmailAndPassword(auth, email, password).then((userCredential)=>{
 
+                const user = auth.currentUser;
+                document.getElementById('firebase_uid').value = user.uid;
 
 
             }).catch((error)=>{
@@ -247,10 +250,53 @@
                 })
             }
 
+
+            function hiddenInputObserver(hiddenInputId, callback){
+
+                var hidden_input = document.getElementById(hiddenInputId);
+
+                var observer = new MutationObserver(function(mutations) {
+
+                    mutations.forEach(function(mutation){
+                        
+                           if(mutation.type === 'attributes' && mutation.attributeName === 'value'){
+
+                                callback(hidden_input.value);
+
+                           }                    
+
+                    });
+
+                });
+
+
+
+                observer.observe(hidden_input,{
+
+                    attributes: true,
+                    attributeFilter: ['value']
+
+                });
+
+                return observer;
+
+
+            } // hiddenInputObserver
+
+
+            var firebase_uid_observer = hiddenInputObserver('firebase_uid',(new_firebase_uid)=>{
+
+                var username = document.getElementById('username_register').value;
+                var email = document.getElementById('email_register').value;
+                var password = document.getElementById('password_register').value;
+
+                add_admin(username,email,password,new_firebase_uid);
+
+            });
       
           
 
-            function add_admin(username,email,password){
+            function add_admin(username,email,password,firebase_uid){
 
 
                 
@@ -289,18 +335,19 @@
                     }else{
 
                                 
-                        const userId = db.ref("/users_admin").push().getKey();
-                        const userRef = db.ref("/users_admin/"+userId);
+                        //const userId = db.ref("/users_admin").push().getKey();
+                        const userRef = db.ref("/users/"+firebase_uid);
 
                         userRef.set({
                             username: username,
-                            user_id:userId,
+                            user_id: firebase_uid,
                             firstname:"",
                             lastname:"",
                             middlename:"",
                             extname:"",
                             mobile_no:"",
                             address:"",
+                            role: "user",
                             email_address:email,
                             date_time_registered:""
                         });
@@ -319,18 +366,7 @@
 
             }
 
-            var btn_signup = document.getElementById('btn_signup');
-            
-
-            btn_signup.addEventListener('click',(e)=>{
-
-                var username = document.getElementById('username_register').value;
-                var email = document.getElementById('email_register').value;
-                var password = document.getElementById('password_register').value;
-
-                add_admin(username,email,password);
-
-            });
+           
 
     
     </script>
